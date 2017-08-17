@@ -6,7 +6,6 @@ Reddit bot runner.
 """
 from datetime import datetime
 import sqlite3
-import os
 import praw
 import praw.models
 import requests
@@ -87,7 +86,6 @@ class BotRunner(object):
                     self.outputs[-1].append(self.interpreter.output)
                     self.interpreter.clear_files()
                 except TimeoutException:
-                    os.kill(self.interpreter.proc, signal.SIGTERM)
                     self.outputs[-1].append("You exceded the maximum time for interpreting your code.\n")
                     # self.interpreter.clear_files()
                 else:
