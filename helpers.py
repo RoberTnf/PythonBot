@@ -91,7 +91,7 @@ class Interpreter(object):
         for PID in PIDS:
             # os.kill sometimes doesn't work
             # os.kill(PID, signal.SIGTERM)
-            subprocess.check_call(kill + PID)
+            subprocess.check_call(kill + [PID])
 
 ##
 # Removes HTML or XML character references and entities from a text string.
