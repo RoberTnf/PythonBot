@@ -29,6 +29,7 @@ class BotRunner(object):
         self.interpreter = Interpreter()
         self.messages = []
         self.conn = conn
+        self.codes = []
 
         cursor.execute(config.SQL_CREATE_TABLE_REDDIT.format(tablename=self.tablename))
 
@@ -106,14 +107,18 @@ class BotRunner(object):
 
     def reply(self):
         for (comment, message) in zip(self.new_comments, self.messages):
-            comment.reply(message)
-            self.cursor.execute(config.SQL_ADD_COMMENT.format(
-                tablename=self.tablename,
-                id=comment.fullname,
-                subreddit=comment.subreddit,
-                now=datetime.now()
-            ))
-            self.conn.commit()
+            try:
+                comment.reply(message)
+                self.cursor.execute(config.SQL_ADD_COMMENT.format(
+                    tablename=self.tablename,
+                    id=comment.fullname,
+                    subreddit=comment.subreddit,
+                    now=datetime.now()
+                ))
+                self.conn.commit()
+                print("Commented: \n{}".format(message))
+            except praw.exceptions.APIException as err:
+                print(err)
 
     def run(self):
         self.get_new_comments()

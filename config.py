@@ -3,11 +3,11 @@
 from os import environ
 
 # execution params
-TEST = True
+TEST = False
 MAX_TIME = 1
 ALLOWED_USERS = ["AgressiveYorkshire", "aphoenix"]
 ALLOWED_SUBREDDITS = ["testingground4bots"]
-MAX_LENGTH_ALLOWED = 500
+MAX_LENGTH_ALLOWED = 1000
 
 #sqlite3
 DB_FILE = "database.db"
