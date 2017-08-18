@@ -46,9 +46,9 @@ class Interpreter(object):
 
         try:
             output_bytes = subprocess.check_output(self.command, stderr=subprocess.STDOUT)
-            self.output = str(output_bytes, "utf-8")[64:]
+            self.output = "\n".join(str(output_bytes, "utf-8").split("\n")[1:])
         except subprocess.CalledProcessError as err:
-            self.output = str(err.output, "utf-8")[64:]
+            self.output = "\n".join(str(err.output, "utf-8").split("\n")[1:])
 
         self.clean_up()
 

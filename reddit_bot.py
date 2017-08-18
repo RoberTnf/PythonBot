@@ -97,7 +97,7 @@ class BotRunner(object):
                 sub_output = "    " + sub_output
                 sub_output = sub_output.replace("\n", "\n    ")
                 if len(sub_output) > config.MAX_LENGTH_ALLOWED:
-                    sub_output = sub_output[len(sub_output)-config.MAX_LENGTH_ALLOWED:]
+                    sub_output = "    " + sub_output[len(sub_output)-config.MAX_LENGTH_ALLOWED:]
                     sub_output += "This message execeded the character limit"
                 messages[-1] += config.OUTPUT_TEMPLATE.format(number=i+1, output=sub_output)
             messages[-1] += config.SIGNATURE
@@ -125,7 +125,8 @@ class BotRunner(object):
             self.reply()
 
         else:
-            print(self.messages)
+            for message in self.messages:
+                print(message)
 
 
 class Comment(praw.models.Comment):
