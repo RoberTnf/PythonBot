@@ -45,7 +45,7 @@ class BotRunner(object):
             if self.callsign in rawcomment["body"].lower():
                 comment = Comment(self.bot, _data=rawcomment)
                 if not comment.was_replied(self.tablename, self.cursor)\
-                    and comment.author not in config.BANNED_USERS\
+                    and comment.author in config.ALLOWED_USERS\
                     and comment.subreddit in config.ALLOWED_SUBREDDITS:
                     comments.append(comment)
 
@@ -131,4 +131,3 @@ if __name__ == "__main__":
     cursor = conn.cursor()
     runner = BotRunner(cursor, bot, conn, callsign="!python")
     runner.run()
-
