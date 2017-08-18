@@ -115,7 +115,12 @@ class BotRunner(object):
         self.get_code_from_comments()
         self.execute_codes()
         self.get_messages_from_outputs()
-        self.reply()
+
+        if not config.TEST:
+            self.reply()
+
+        else:
+            print(self.messages)
 
 
 class Comment(praw.models.Comment):
