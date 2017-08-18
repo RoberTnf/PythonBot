@@ -32,11 +32,6 @@ class BotRunner(object):
 
         cursor.execute(config.SQL_CREATE_TABLE_REDDIT.format(tablename=self.tablename))
 
-    def was_replied(self, comment):
-        rows = self.cursor.execute(config.SQL_SEARCH.format(
-            tablename=self.tablename, id=comment.fullname))
-        return bool(rows.fetchall())
-
     def get_new_comments(self):
         request = requests.get('https://api.pushshift.io/reddit/search?q=%22{}%22&limit=100'\
             .format(self.callsign), headers = {'User-Agent': 'PythonBot Agent'})
@@ -48,8 +43,8 @@ class BotRunner(object):
             # object constructor requires empty attribute
             rawcomment['_replies'] = ''
             if self.callsign in rawcomment["body"].lower():
-                comment = praw.models.Comment(self.bot, _data=rawcomment)
-                if not self.was_replied(comment):
+                comment = Comment(self.bot, _data=rawcomment)
+                if not comment.was_replied(self.tablename, self.cursor):
                     comments.append(comment)
 
         self.new_comments = comments
@@ -113,7 +108,11 @@ class BotRunner(object):
             ))
             self.conn.commit()
 
-
+class Comment(praw.models.Comment):
+    def was_replied(self, tablename, cursor):
+        rows = cursor.execute(config.SQL_SEARCH.format(
+            tablename=tablename, id=self.fullname))
+        return bool(rows.fetchall())
 
 
 
@@ -127,4 +126,5 @@ if __name__ == "__main__":
     runner.get_code_from_comments()
     runner.execute_codes()
     runner.get_messages_from_outputs()
-    runner.reply()
+    print(runner.messages)
+    # runner.reply()
