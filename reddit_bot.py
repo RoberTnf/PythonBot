@@ -96,7 +96,12 @@ class BotRunner(object):
             for i, sub_output in enumerate(output):
                 sub_output = "    " + sub_output
                 sub_output = sub_output.replace("\n", "\n    ")
+                if len(sub_output) > config.MAX_LENGTH_ALLOWED:
+                    sub_output = sub_output[len(sub_output)-config.MAX_LENGTH_ALLOWED:]
+                    sub_output += "This message execeded the character limit"
                 messages[-1] += config.OUTPUT_TEMPLATE.format(number=i+1, output=sub_output)
+            messages[-1] += config.SIGNATURE
+
         self.messages = messages
 
     def reply(self):

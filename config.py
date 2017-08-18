@@ -7,6 +7,7 @@ TEST = True
 MAX_TIME = 1
 ALLOWED_USERS = ["AgressiveYorkshire"]
 ALLOWED_SUBREDDITS = ["testingground4bots"]
+MAX_LENGTH_ALLOWED = 500
 
 #sqlite3
 DB_FILE = "database.db"
@@ -32,5 +33,5 @@ OUTPUT_TEMPLATE = """
 """
 SIGNATURE = """
 ***
-^^I'm ^^a ^^bot, ^^check ^^me ^^out ^^at: ^^https://github.com/RoberTnf/BookBot
+^^I'm ^^a ^^bot, ^^check ^^me ^^out ^^at: ^^https://github.com/RoberTnf/PythonBot
 """
