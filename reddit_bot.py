@@ -9,7 +9,7 @@ import sqlite3
 import praw
 import praw.models
 import requests
-from helpers import Interpreter, timeout_handler, TimeoutException
+from helpers import Interpreter, timeout_handler, TimeoutException, unescape
 import signal
 import config
 
@@ -45,7 +45,7 @@ class BotRunner(object):
             if self.callsign in rawcomment["body"].lower():
                 comment = Comment(self.bot, _data=rawcomment)
                 if not comment.was_replied(self.tablename, self.cursor)\
-                    and comment.author not in config.BANNED_USERS\
+                    and comment.author in config.ALLOWED_USERS\
                     and comment.subreddit in config.ALLOWED_SUBREDDITS:
                     comments.append(comment)
 
@@ -64,7 +64,7 @@ class BotRunner(object):
                 for line in line_list[line_list.index(self.callsign, last_stop)+1:]:
                     # if the comment block stops
                     if line.startswith("    ") or line == "":
-                        code += "\n" + line[4:]
+                        code += "\n" + unescape(line[4:])
                         last_stop += 1
                     else:
                         codes[-1].append(code)
@@ -96,7 +96,12 @@ class BotRunner(object):
             for i, sub_output in enumerate(output):
                 sub_output = "    " + sub_output
                 sub_output = sub_output.replace("\n", "\n    ")
+                if len(sub_output) > config.MAX_LENGTH_ALLOWED:
+                    sub_output = sub_output[len(sub_output)-config.MAX_LENGTH_ALLOWED:]
+                    sub_output += "This message execeded the character limit"
                 messages[-1] += config.OUTPUT_TEMPLATE.format(number=i+1, output=sub_output)
+            messages[-1] += config.SIGNATURE
+
         self.messages = messages
 
     def reply(self):
@@ -115,7 +120,12 @@ class BotRunner(object):
         self.get_code_from_comments()
         self.execute_codes()
         self.get_messages_from_outputs()
-        self.reply()
+
+        if not config.TEST:
+            self.reply()
+
+        else:
+            print(self.messages)
 
 
 class Comment(praw.models.Comment):
