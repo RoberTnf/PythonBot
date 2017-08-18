@@ -131,9 +131,3 @@ if __name__ == "__main__":
     cursor = conn.cursor()
     runner = BotRunner(cursor, bot, conn, callsign="!python")
     runner.run()
-    """
-    runner.get_new_comments()
-    runner.get_code_from_comments()
-    runner.execute_codes()
-    runner.get_messages_from_outputs()
-    print(runner.messages)"""
