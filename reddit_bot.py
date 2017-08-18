@@ -44,7 +44,9 @@ class BotRunner(object):
             rawcomment['_replies'] = ''
             if self.callsign in rawcomment["body"].lower():
                 comment = Comment(self.bot, _data=rawcomment)
-                if not comment.was_replied(self.tablename, self.cursor):
+                if not comment.was_replied(self.tablename, self.cursor)\
+                    and comment.author not in config.BANNED_USERS\
+                    and comment.subreddit in config.ALLOWED_SUBREDDITS:
                     comments.append(comment)
 
         self.new_comments = comments
@@ -108,6 +110,14 @@ class BotRunner(object):
             ))
             self.conn.commit()
 
+    def run(self):
+        self.get_new_comments()
+        self.get_code_from_comments()
+        self.execute_codes()
+        self.get_messages_from_outputs()
+        self.reply()
+
+
 class Comment(praw.models.Comment):
     def was_replied(self, tablename, cursor):
         rows = cursor.execute(config.SQL_SEARCH.format(
@@ -115,16 +125,15 @@ class Comment(praw.models.Comment):
         return bool(rows.fetchall())
 
 
-
 if __name__ == "__main__":
     bot = praw.Reddit('pythonBot')
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
-
-    runner = BotRunner(cursor, bot, conn, callsign="!testingpythoncallsign")
+    runner = BotRunner(cursor, bot, conn, callsign="!python")
+    runner.run()
+    """
     runner.get_new_comments()
     runner.get_code_from_comments()
     runner.execute_codes()
     runner.get_messages_from_outputs()
-    print(runner.messages)
-    # runner.reply()
+    print(runner.messages)"""

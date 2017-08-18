@@ -44,10 +44,12 @@ class Interpreter(object):
         self.create_input(code)
 
         try:
-            output_bytes = subprocess.check_output(self.command, stderr=subprocess.STDOUT)[64:]
-            self.output = str(output_bytes)
+            output_bytes = subprocess.check_output(self.command, stderr=subprocess.STDOUT)
+            self.output = str(output_bytes, "utf-8")[64:]
         except subprocess.CalledProcessError as err:
-            self.output = str(err.output[64:])
+            self.output = str(err.output, "utf-8")[64:]
+
+        self.clean_up()
 
         self.delete_input()
 
@@ -74,3 +76,9 @@ class Interpreter(object):
                 os.remove(os.path.join(root, name))
             for name in dirs:
                 os.rmdir(os.path.join(root, name))
+
+    def clean_up(self):
+        command = ["firejail", "--list"]
+        PIDS = [int(s[:5]) for s in str(subprocess.check_output(command), "utf-8").split("\n")[:-1]]
+        for PID in PIDS:
+            os.kill(PID, signal.SIGTERM)

@@ -6,6 +6,9 @@ DEBUG = True
 TEST = True
 # execution params
 MAX_TIME = 1
+BANNED_USERS = []
+ALLOWED_SUBREDDITS = ["testingground4bots"]
+
 #sqlite3
 DB_FILE = "database.db"
 
