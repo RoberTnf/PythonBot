@@ -86,9 +86,12 @@ class Interpreter(object):
 
     def clean_up(self):
         command = ["firejail", "--list"]
+        kill = ["kill", "-9"]
         PIDS = [int(s[:s.find(":")]) for s in str(subprocess.check_output(command), "utf-8").split("\n")[:-1]]
         for PID in PIDS:
-            os.kill(PID, signal.SIGTERM)
+            # os.kill sometimes doesn't work
+            # os.kill(PID, signal.SIGTERM)
+            subprocess.check_call(kill + PID)
 
 ##
 # Removes HTML or XML character references and entities from a text string.

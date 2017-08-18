@@ -3,7 +3,7 @@
 from os import environ
 
 # execution params
-TEST = False
+TEST =True 
 MAX_TIME = 5
 ALLOWED_USERS = ["AgressiveYorkshire", "aphoenix"]
 ALLOWED_SUBREDDITS = ["testingground4bots"]
