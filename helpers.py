@@ -86,7 +86,7 @@ class Interpreter(object):
 
     def clean_up(self):
         command = ["firejail", "--list"]
-        PIDS = [int(s[:5]) for s in str(subprocess.check_output(command), "utf-8").split("\n")[:-1]]
+        PIDS = [int(s[:s.find(":")]) for s in str(subprocess.check_output(command), "utf-8").split("\n")[:-1]]
         for PID in PIDS:
             os.kill(PID, signal.SIGTERM)
 
