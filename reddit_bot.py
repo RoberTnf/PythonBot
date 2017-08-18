@@ -9,7 +9,7 @@ import sqlite3
 import praw
 import praw.models
 import requests
-from helpers import Interpreter, timeout_handler, TimeoutException
+from helpers import Interpreter, timeout_handler, TimeoutException, unescape
 import signal
 import config
 
@@ -64,7 +64,7 @@ class BotRunner(object):
                 for line in line_list[line_list.index(self.callsign, last_stop)+1:]:
                     # if the comment block stops
                     if line.startswith("    ") or line == "":
-                        code += "\n" + line[4:]
+                        code += "\n" + unescape(line[4:])
                         last_stop += 1
                     else:
                         codes[-1].append(code)
