@@ -23,19 +23,6 @@ ALLOWED_USERS = ["AgressiveYorkshire", "aphoenix"]
 ALLOWED_SUBREDDITS = ["testingground4bots"]
 MAX_LENGTH_ALLOWED = 1000
 
-#sqlite3
-DB_FILE = "database.db"
-
-SQL_CREATE_TABLE_REDDIT = """
-CREATE TABLE IF NOT EXISTS {tablename} (
-    id TEXT PRIMARY KEY,
-    subreddit TEXT NOT NULL,
-    created_at TIMESTAMP
-);
-"""
-SQL_SEARCH = """SELECT * FROM {tablename} WHERE id='{id}'"""
-SQL_ADD_COMMENT = """INSERT INTO {tablename} (id, subreddit, created_at) VALUES ('{id}', '{subreddit}', '{now}')"""
-
 # Reddit params
 NUMBER_OF_POSTS = 100
 CALLSIGN = "/u/InterpreterBot python"

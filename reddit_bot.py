@@ -18,9 +18,7 @@ signal.signal(signal.SIGALRM, timeout_handler)
 
 class BotRunner(object):
 
-    def __init__(self, cursor, bot, conn, language, tablename="comments"):
-        self.tablename = tablename
-        self.cursor = cursor
+    def __init__(self, bot, language):
         self.bot = bot
         self.language = language["callsign"]
         self.callsign = config.BOT_USERNAME + " " + language["callsign"]
@@ -28,10 +26,7 @@ class BotRunner(object):
         self.outputs = []
         self.interpreter = Interpreter(language)
         self.messages = []
-        self.conn = conn
         self.codes = []
-
-        cursor.execute(config.SQL_CREATE_TABLE_REDDIT.format(tablename=self.tablename))
 
     def get_new_comments(self):
         comments = []
@@ -100,13 +95,6 @@ class BotRunner(object):
         for (comment, message) in zip(self.new_comments, self.messages):
             try:
                 comment.reply(message)
-                self.cursor.execute(config.SQL_ADD_COMMENT.format(
-                    tablename=self.tablename,
-                    id=comment.fullname,
-                    subreddit=comment.subreddit,
-                    now=datetime.now()
-                ))
-                self.conn.commit()
                 print("Replied.")
                 comment.mark_read()
             except praw.exceptions.APIException as err:
@@ -132,16 +120,13 @@ class BotRunner(object):
                 print(message)
         self.clean_up()
 
-
 if __name__ == "__main__":
     print("Starting bot.")
     bot = praw.Reddit('pythonBot')
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
     runners = []
 
     for language in config.LANGUAGES.values():
-        runners.append(BotRunner(cursor, bot, conn, language))
+        runners.append(BotRunner(bot, language))
     while True:
         try:
             for runner in runners:
