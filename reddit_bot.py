@@ -19,14 +19,15 @@ signal.signal(signal.SIGALRM, timeout_handler)
 
 class BotRunner(object):
 
-    def __init__(self, cursor, bot, conn, callsign=config.CALLSIGN, tablename="comments"):
+    def __init__(self, cursor, bot, conn, language, tablename="comments"):
         self.tablename = tablename
         self.cursor = cursor
         self.bot = bot
-        self.callsign = callsign
+        self.language = language["callsign"]
+        self.callsign = config.BOT_USERNAME + " " + language["callsign"]
         self.new_comments = []
         self.outputs = []
-        self.interpreter = Interpreter()
+        self.interpreter = Interpreter(language)
         self.messages = []
         self.conn = conn
         self.codes = []
@@ -39,7 +40,8 @@ class BotRunner(object):
             if self.callsign.lower() in c.body.lower() and c.author in config.ALLOWED_USERS\
                 and c.subreddit in config.ALLOWED_SUBREDDITS:
                 comments.append(c)
-                print("Summon from: {}".format(c.permalink))
+
+                print("{}: Summon from: {}".format(self.language, c.permalink))
 
         self.new_comments = comments
 
@@ -73,7 +75,6 @@ class BotRunner(object):
                 try:
                     self.interpreter.run(sub_code)
                     self.outputs[-1].append(self.interpreter.output)
-                    self.interpreter.clear_files()
                 except TimeoutException:
                     self.outputs[-1].append("You exceded the maximum time for interpreting your code.\n")
                     # self.interpreter.clear_files()
@@ -124,6 +125,7 @@ class BotRunner(object):
         self.execute_codes()
         self.get_messages_from_outputs()
 
+
         if not config.TEST:
             self.reply()
 
@@ -135,19 +137,19 @@ class BotRunner(object):
 
 
 if __name__ == "__main__":
+    print("Starting bot.")
     bot = praw.Reddit('pythonBot')
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
-    runner = BotRunner(cursor, bot, conn, callsign=config.CALLSIGN)
+    runners = []
 
-    print("Starting bot.")
+    for language in config.LANGUAGES.values():
+        runners.append(BotRunner(cursor, bot, conn, language))
     while True:
-        sleep(2)
         try:
-            runner.run()
+            for runner in runners:
+                runner.run()
         except Exception as e:
             with open("log.txt", "a+") as f:
                 print(str(e))
                 f.write(str(e)+"\n")
-        except KeyboardInterrupt:
-            print("Stopping bot.")

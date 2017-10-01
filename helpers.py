@@ -7,13 +7,7 @@ import os
 import os.path
 import signal
 import re, html.entities
-
-FIREJAIL_COMMAND = ["firejail", "--profile=firejail.profile", "-c", "python3"]
-FIREJAIL_DIR = "firejail_dir/"
-INPUT = "input.py"
-
-ACCEPTED_FILES = ['./virtualenv/']
-
+import config
 
 # https://stackoverflow.com/questions/25027122/break-the-function-after-certain-time
 
@@ -29,19 +23,17 @@ class Interpreter(object):
     Class to securely run code fed to us.
     """
 
-    def __init__(self, firejail_command=FIREJAIL_COMMAND, input_file=INPUT,
-                 firejail_dir=FIREJAIL_DIR):
+    def __init__(self, language):
 
-        self.firejail_dir = firejail_dir
-        self.input_file = firejail_dir + input_file
-        self.command = firejail_command + [input_file]
+        self.firejail_dir = config.firejail_dir
+        self.input_file = firejail_dir + config.INPUT_FILE
+        self.command = config.FIREJAIL_COMMAND + language["command"]
         self.output = ""
 
     def run(self, code):
         """
         Runs code and returns the output
         """
-
         self.create_input(code)
 
         try:
@@ -57,9 +49,6 @@ class Interpreter(object):
         # I don't know why this happens
         self.output = output[output.find("\x070")+2:]
 
-        self.clean_up()
-        self.delete_input()
-
     def create_input(self, code=""):
         """
         Creates temporary file and fills it with the code to be executed
@@ -68,21 +57,6 @@ class Interpreter(object):
         with open(self.input_file, "w+") as tmp_file:
             tmp_file.write(code)
 
-
-    def delete_input(self):
-        """
-        Deletes temporary file
-        """
-
-        if os.path.exists(self.input_file):
-            os.remove(self.input_file)
-
-    def clear_files(self):
-        for root, dirs, files in os.walk(top=self.firejail_dir, topdown=False):
-            for name in files:
-                os.remove(os.path.join(root, name))
-            for name in dirs:
-                os.rmdir(os.path.join(root, name))
 
     def clean_up(self):
         command = ["firejail", "--list"]
