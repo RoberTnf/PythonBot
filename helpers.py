@@ -55,7 +55,7 @@ class Interpreter(object):
         # if you print output, it gives you what you expect
         # however, if you, in a terminal, evaluate output, the string is different
         # I don't know why this happens
-        self.output = output[output.find("\x070")+1:]
+        self.output = output[output.find("\x070")+2:]
 
         self.clean_up()
         self.delete_input()

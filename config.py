@@ -3,7 +3,7 @@
 from os import environ
 
 # execution params
-TEST =True 
+TEST = False 
 MAX_TIME = 5
 ALLOWED_USERS = ["AgressiveYorkshire", "aphoenix"]
 ALLOWED_SUBREDDITS = ["testingground4bots"]
@@ -24,7 +24,7 @@ SQL_ADD_COMMENT = """INSERT INTO {tablename} (id, subreddit, created_at) VALUES 
 
 # Reddit params
 NUMBER_OF_POSTS = 100
-CALLSIGN = "!python"
+CALLSIGN = "/u/InterpreterBot python"
 
 OUTPUT_TEMPLATE = """
 {number}:
