@@ -7,11 +7,10 @@ from datetime import datetime
 import sqlite3
 import praw
 import praw.models
-import requests
 from helpers import Interpreter, timeout_handler, TimeoutException, unescape
 import signal
 import config
-from time import sleep
+
 
 # https://stackoverflow.com/questions/25027122/break-the-function-after-certain-time
 # Change the behavior of SIGALRM
@@ -128,11 +127,9 @@ class BotRunner(object):
 
         if not config.TEST:
             self.reply()
-
         else:
             for message in self.messages:
                 print(message)
-        
         self.clean_up()
 
 
