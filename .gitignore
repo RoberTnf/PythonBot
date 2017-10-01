@@ -4,6 +4,7 @@ __*
 praw.ini
 *.db
 firejail_dir/
-.vscode/settings.json
+.vscode/
 log.txt
 .pylintrc
+
