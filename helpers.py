@@ -3,18 +3,18 @@ Contains helping function.
 """
 
 import subprocess
-import os
-import os.path
-import signal
-import re, html.entities
+import re
+import html.entities
 import config
 
 # https://stackoverflow.com/questions/25027122/break-the-function-after-certain-time
 
-class TimeoutException(Exception):   # Custom exception class
+class TimeoutException(Exception):
+    """Custom exception class"""
     pass
 
-def timeout_handler(signum, frame):   # Custom signal handler
+def timeout_handler(signum, frame):
+    """# Custom signal handler"""
     raise TimeoutException
 
 class Interpreter(object):
@@ -48,6 +48,7 @@ class Interpreter(object):
         # however, if you, in a terminal, evaluate output, the string is different
         # I don't know why this happens
         self.output = output[output.find("\x070")+2:]
+        clean_up()
 
     def create_input(self, code=""):
         """
@@ -58,34 +59,37 @@ class Interpreter(object):
             tmp_file.write(code)
 
 
-    def clean_up(self):
-        command = ["firejail", "--list"]
-        kill = ["kill", "-9"]
-        PIDS = [int(s[:s.find(":")]) for s in str(subprocess.check_output(command), "utf-8").split("\n")[:-1]]
-        for PID in PIDS:
-            # os.kill sometimes doesn't work
-            # os.kill(PID, signal.SIGTERM)
-            try:
-                subprocess.check_call(kill + [str(PID)])
-            except subprocess.CalledProcessError:
-                pass
+def clean_up():
+    """
+    Kills every firejailed process
+    """
 
-##
-# Removes HTML or XML character references and entities from a text string.
-#
-# @param text The HTML (or XML) source text.
-# @return The plain text, as a Unicode string, if necessary.
+    command = ["firejail", "--list"]
+    kill = ["kill", "-9"]
+    pids = [int(s[:s.find(":")]) for s in str(subprocess.check_output(command), "utf-8")\
+        .split("\n")[:-1]]
+    for pid in pids:
+        # os.kill sometimes doesn't work
+        # os.kill(PID, signal.SIGTERM)
+        try:
+            subprocess.check_call(kill + [str(pid)])
+        except subprocess.CalledProcessError:
+            pass
 
 def unescape(text):
-    def fixup(m):
-        text = m.group(0)
+    """
+    Removes HTML or XML character references and entities from a text string.
+    @param text The HTML (or XML) source text.
+    @return The plain text, as a Unicode string, if necessary."""
+    def fixup(match):
+        """Auxiliary function"""
+        text = match.group(0)
         if text[:2] == "&#":
             # character reference
             try:
                 if text[:3] == "&#x":
-                    return unichr(int(text[3:-1], 16))
-                else:
-                    return unichr(int(text[2:-1]))
+                    return chr(int(text[3:-1], 16))
+                return chr(int(text[2:-1]))
             except ValueError:
                 pass
         else:
@@ -95,4 +99,4 @@ def unescape(text):
             except KeyError:
                 pass
         return text # leave as is
-    return re.sub("&#?\w+;", fixup, text)
+    return re.sub(r"&#?\w+;", fixup, text)

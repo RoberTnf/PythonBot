@@ -6,3 +6,4 @@ praw.ini
 firejail_dir/
 .vscode/settings.json
 log.txt
+.pylintrc

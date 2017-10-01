@@ -3,12 +3,11 @@
 """
 Reddit bot runner.
 """
-from datetime import datetime
-import sqlite3
+
+import signal
 import praw
 import praw.models
 from helpers import Interpreter, timeout_handler, TimeoutException, unescape
-import signal
 import config
 
 
@@ -17,29 +16,40 @@ import config
 signal.signal(signal.SIGALRM, timeout_handler)
 
 class BotRunner(object):
+    """
+    Class for the bot object, handles everything related to reddit and praw.
+    """
 
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, bot, language):
         self.bot = bot
+        self.interpreter = Interpreter(language)
         self.language = language["callsign"]
         self.callsign = config.BOT_USERNAME + " " + language["callsign"]
         self.new_comments = []
         self.outputs = []
-        self.interpreter = Interpreter(language)
         self.messages = []
         self.codes = []
 
     def get_new_comments(self):
-        comments = []
-        for c in self.bot.inbox.unread():
-            if self.callsign.lower() in c.body.lower() and c.author in config.ALLOWED_USERS\
-                and c.subreddit in config.ALLOWED_SUBREDDITS:
-                comments.append(c)
+        """
+        Gets comment in which the bot is mentioned using the unread messages in the inbox
+        """
 
-                print("{}: Summon from: {}".format(self.language, c.permalink()))
+        comments = []
+        for comment in self.bot.inbox.unread():
+            if self.callsign.lower() in comment.body.lower() and comment.author\
+                in config.ALLOWED_USERS and comment.subreddit in config.ALLOWED_SUBREDDITS:
+                comments.append(comment)
+
+                print("{}: Summon from: {}".format(self.language, comment.permalink()))
 
         self.new_comments = comments
 
     def get_code_from_comments(self):
+        """
+        Extracts codes to be run from the comments
+        """
 
         codes = []
         for comment in self.new_comments:
@@ -47,7 +57,7 @@ class BotRunner(object):
             last_stop = 0
             codes.append([])
             # get starting lines for code
-            for i in range(line_list.count(self.callsign)):
+            for _ in range(line_list.count(self.callsign)):
                 code = ""
                 for line in line_list[line_list.index(self.callsign, last_stop)+1:]:
                     # if the comment block stops
@@ -62,6 +72,10 @@ class BotRunner(object):
         self.codes = codes
 
     def execute_codes(self):
+        """
+        Executes codes previously extracted and gets the output
+        """
+
         for code in self.codes:
             self.outputs.append([])
             for sub_code in code:
@@ -70,13 +84,18 @@ class BotRunner(object):
                     self.interpreter.run(sub_code)
                     self.outputs[-1].append(self.interpreter.output)
                 except TimeoutException:
-                    self.outputs[-1].append("You exceded the maximum time for interpreting your code.\n")
+                    self.outputs[-1].append(
+                        "You exceded the maximum time for interpreting your code.\n")
                     # self.interpreter.clear_files()
                 else:
                     # reset alarm
                     signal.alarm(0)
 
     def get_messages_from_outputs(self):
+        """
+        Formats messages to be replied
+        """
+
         messages = []
         for output in self.outputs:
             messages.append("")
@@ -92,6 +111,9 @@ class BotRunner(object):
         self.messages = messages
 
     def reply(self):
+        """
+        Replies to every comment
+        """
         for (comment, message) in zip(self.new_comments, self.messages):
             try:
                 comment.reply(message)
@@ -101,13 +123,21 @@ class BotRunner(object):
                 print(err)
 
     def clean_up(self):
+        """
+        Sets up for a new iteration of the main loop
+        """
+
         self.new_comments = []
         self.outputs = []
         self.messages = []
         self.codes = []
 
     def run(self):
-        self.get_new_comments() 
+        """
+        Does an iteration of the main loop, gets comments, executes code and replies
+        """
+
+        self.get_new_comments()
         self.get_code_from_comments()
         self.execute_codes()
         self.get_messages_from_outputs()
@@ -122,16 +152,16 @@ class BotRunner(object):
 
 if __name__ == "__main__":
     print("Starting bot.")
-    bot = praw.Reddit('pythonBot')
-    runners = []
+    BOT = praw.Reddit('pythonBot')
+    RUNNERS = []
 
-    for language in config.LANGUAGES.values():
-        runners.append(BotRunner(bot, language))
+    for LANGUAGE in config.LANGUAGES.values():
+        RUNNERS.append(BotRunner(BOT, LANGUAGE))
     while True:
         try:
-            for runner in runners:
+            for runner in RUNNERS:
                 runner.run()
-        except Exception as e:
+        except Exception as excep: # pylint: disable=W0703
             with open("log.txt", "a+") as f:
-                print(str(e))
-                f.write(str(e)+"\n")
+                print(str(excep))
+                f.write(str(excep)+"\n")

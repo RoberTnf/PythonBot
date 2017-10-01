@@ -1,7 +1,5 @@
 """Constants, SQL connectors"""
 
-from os import environ
-
 # Language support
 BOT_USERNAME = "/u/InterpreterBot"
 INPUT_FILE = "input"
@@ -12,16 +10,16 @@ LANGUAGES = {
     }
 }
 
-# firejail
-FIREJAIL_COMMAND = ["firejail", "--profile=firejail.profile", "-c"]
-FIREJAIL_DIR = "firejail_dir/"
-
 # execution params
-TEST = False 
+TEST = True
 MAX_TIME = 5
 ALLOWED_USERS = ["AgressiveYorkshire", "aphoenix"]
 ALLOWED_SUBREDDITS = ["testingground4bots"]
 MAX_LENGTH_ALLOWED = 1000
+
+# firejail
+FIREJAIL_COMMAND = ["firejail", "--profile=firejail.profile", "-c"]
+FIREJAIL_DIR = "firejail_dir/"
 
 # Reddit params
 NUMBER_OF_POSTS = 100
