@@ -25,8 +25,8 @@ class Interpreter(object):
 
     def __init__(self, language):
 
-        self.firejail_dir = config.firejail_dir
-        self.input_file = firejail_dir + config.INPUT_FILE
+        self.firejail_dir = config.FIREJAIL_DIR
+        self.input_file = self.firejail_dir + config.INPUT_FILE
         self.command = config.FIREJAIL_COMMAND + language["command"]
         self.output = ""
 
