@@ -39,6 +39,7 @@ class BotRunner(object):
             if self.callsign.lower() in c.body.lower() and c.author in config.ALLOWED_USERS\
                 and c.subreddit in config.ALLOWED_SUBREDDITS:
                 comments.append(c)
+                print("Summon from: {}".format(c.permalink))
 
         self.new_comments = comments
 
@@ -106,7 +107,7 @@ class BotRunner(object):
                     now=datetime.now()
                 ))
                 self.conn.commit()
-                print("Commented: \n{}".format(message))
+                print("Replied.")
                 comment.mark_read()
             except praw.exceptions.APIException as err:
                 print(err)
@@ -138,6 +139,8 @@ if __name__ == "__main__":
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
     runner = BotRunner(cursor, bot, conn, callsign=config.CALLSIGN)
+
+    print("Starting bot.")
     while True:
         sleep(2)
         try:
@@ -146,3 +149,5 @@ if __name__ == "__main__":
             with open("log.txt", "a+") as f:
                 print(str(e))
                 f.write(str(e)+"\n")
+        except KeyboardInterrupt:
+            print("Stopping bot.")
