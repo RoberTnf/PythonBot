@@ -41,7 +41,7 @@ class BotRunner(object):
                 and c.subreddit in config.ALLOWED_SUBREDDITS:
                 comments.append(c)
 
-                print("{}: Summon from: {}".format(self.language, c.permalink))
+                print("{}: Summon from: {}".format(self.language, c.permalink()))
 
         self.new_comments = comments
 
