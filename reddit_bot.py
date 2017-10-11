@@ -39,7 +39,7 @@ class BotRunner(object):
         comments = []
         for comment in self.bot.inbox.unread():
             if self.callsign.lower() in comment.body.lower() and comment.author\
-                in config.ALLOWED_USERS and comment.subreddit in config.ALLOWED_SUBREDDITS:
+                not in config.BLOCKED_USERS and comment.subreddit in config.ALLOWED_SUBREDDITS:
                 comments.append(comment)
 
                 print("{}: Summon from: {}".format(self.language, comment.permalink()))

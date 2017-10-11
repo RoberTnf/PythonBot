@@ -11,10 +11,12 @@ LANGUAGES = {
 }
 
 # execution params
-TEST = True
+TEST = False
 MAX_TIME = 5
-ALLOWED_USERS = ["AgressiveYorkshire", "aphoenix"]
-ALLOWED_SUBREDDITS = ["testingground4bots"]
+BLOCKED_USERS = []
+ALLOWED_SUBREDDITS = [
+    "testingground4bots", "python", "programming", "learnprogramming",
+    "learnpython"]
 MAX_LENGTH_ALLOWED = 1000
 
 # firejail
