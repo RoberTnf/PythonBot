@@ -5,7 +5,7 @@ BOT_USERNAME = "/u/InterpreterBot"
 INPUT_FILE = "input"
 LANGUAGES = {
     "python": {
-        "command": ["py3-bot/bin/python", INPUT_FILE],
+        "command": ["python3", INPUT_FILE],
         "callsign": "python"
     }
 }
