@@ -1,58 +1,55 @@
-
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """
 Reddit bot runner.
 """
-from datetime import datetime
-import sqlite3
+
+import signal
 import praw
 import praw.models
-import requests
 from helpers import Interpreter, timeout_handler, TimeoutException, unescape
-import signal
 import config
+
 
 # https://stackoverflow.com/questions/25027122/break-the-function-after-certain-time
 # Change the behavior of SIGALRM
 signal.signal(signal.SIGALRM, timeout_handler)
 
 class BotRunner(object):
+    """
+    Class for the bot object, handles everything related to reddit and praw.
+    """
 
-    def __init__(self, cursor, bot, conn, callsign=config.CALLSIGN, tablename="comments"):
-        self.tablename = tablename
-        self.cursor = cursor
+    # pylint: disable=too-many-instance-attributes
+    def __init__(self, bot, language):
         self.bot = bot
-        self.callsign = callsign
+        self.interpreter = Interpreter(language)
+        self.language = language["callsign"]
+        self.callsign = config.BOT_USERNAME + " " + language["callsign"]
         self.new_comments = []
         self.outputs = []
-        self.interpreter = Interpreter()
         self.messages = []
-        self.conn = conn
         self.codes = []
 
-        cursor.execute(config.SQL_CREATE_TABLE_REDDIT.format(tablename=self.tablename))
-
     def get_new_comments(self):
-        request = requests.get('https://api.pushshift.io/reddit/search?q=%22{}%22&limit=100'\
-            .format(self.callsign), headers = {'User-Agent': 'PythonBot Agent'})
-        json = request.json()
-        raw_comments = json["data"]
-        comments = []
+        """
+        Gets comment in which the bot is mentioned using the unread messages in the inbox
+        """
 
-        for rawcomment in raw_comments:
-            # object constructor requires empty attribute
-            rawcomment['_replies'] = ''
-            if self.callsign in rawcomment["body"].lower():
-                comment = Comment(self.bot, _data=rawcomment)
-                if not comment.was_replied(self.tablename, self.cursor)\
-                    and comment.author in config.ALLOWED_USERS\
-                    and comment.subreddit in config.ALLOWED_SUBREDDITS:
-                    comments.append(comment)
+        comments = []
+        for comment in self.bot.inbox.unread():
+            if self.callsign.lower() in comment.body.lower() and comment.author\
+                not in config.BLOCKED_USERS and comment.subreddit in config.ALLOWED_SUBREDDITS:
+                comments.append(comment)
+
+                print("{}: Summon from: {}".format(self.language, comment.permalink()))
 
         self.new_comments = comments
 
     def get_code_from_comments(self):
+        """
+        Extracts codes to be run from the comments
+        """
 
         codes = []
         for comment in self.new_comments:
@@ -60,7 +57,7 @@ class BotRunner(object):
             last_stop = 0
             codes.append([])
             # get starting lines for code
-            for i in range(line_list.count(self.callsign)):
+            for _ in range(line_list.count(self.callsign)):
                 code = ""
                 for line in line_list[line_list.index(self.callsign, last_stop)+1:]:
                     # if the comment block stops
@@ -75,6 +72,10 @@ class BotRunner(object):
         self.codes = codes
 
     def execute_codes(self):
+        """
+        Executes codes previously extracted and gets the output
+        """
+
         for code in self.codes:
             self.outputs.append([])
             for sub_code in code:
@@ -82,15 +83,19 @@ class BotRunner(object):
                 try:
                     self.interpreter.run(sub_code)
                     self.outputs[-1].append(self.interpreter.output)
-                    self.interpreter.clear_files()
                 except TimeoutException:
-                    self.outputs[-1].append("You exceded the maximum time for interpreting your code.\n")
+                    self.outputs[-1].append(
+                        "You exceded the maximum time for interpreting your code.\n")
                     # self.interpreter.clear_files()
                 else:
                     # reset alarm
                     signal.alarm(0)
 
     def get_messages_from_outputs(self):
+        """
+        Formats messages to be replied
+        """
+
         messages = []
         for output in self.outputs:
             messages.append("")
@@ -106,44 +111,57 @@ class BotRunner(object):
         self.messages = messages
 
     def reply(self):
+        """
+        Replies to every comment
+        """
         for (comment, message) in zip(self.new_comments, self.messages):
             try:
                 comment.reply(message)
-                self.cursor.execute(config.SQL_ADD_COMMENT.format(
-                    tablename=self.tablename,
-                    id=comment.fullname,
-                    subreddit=comment.subreddit,
-                    now=datetime.now()
-                ))
-                self.conn.commit()
-                print("Commented: \n{}".format(message))
+                print("Replied.")
+                comment.mark_read()
             except praw.exceptions.APIException as err:
                 print(err)
 
+    def clean_up(self):
+        """
+        Sets up for a new iteration of the main loop
+        """
+
+        self.new_comments = []
+        self.outputs = []
+        self.messages = []
+        self.codes = []
+
     def run(self):
+        """
+        Does an iteration of the main loop, gets comments, executes code and replies
+        """
+
         self.get_new_comments()
         self.get_code_from_comments()
         self.execute_codes()
         self.get_messages_from_outputs()
 
+
         if not config.TEST:
             self.reply()
-
         else:
             for message in self.messages:
                 print(message)
-
-
-class Comment(praw.models.Comment):
-    def was_replied(self, tablename, cursor):
-        rows = cursor.execute(config.SQL_SEARCH.format(
-            tablename=tablename, id=self.fullname))
-        return bool(rows.fetchall())
-
+        self.clean_up()
 
 if __name__ == "__main__":
-    bot = praw.Reddit('pythonBot')
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-    runner = BotRunner(cursor, bot, conn, callsign="!python")
-    runner.run()
+    print("Starting bot.")
+    BOT = praw.Reddit('pythonBot')
+    RUNNERS = []
+
+    for LANGUAGE in config.LANGUAGES.values():
+        RUNNERS.append(BotRunner(BOT, LANGUAGE))
+    while True:
+        try:
+            for runner in RUNNERS:
+                runner.run()
+        except Exception as excep: # pylint: disable=W0703
+            with open("log.txt", "a+") as f:
+                print(str(excep))
+                f.write(str(excep)+"\n")

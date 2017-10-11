@@ -3,24 +3,18 @@ Contains helping function.
 """
 
 import subprocess
-import os
-import os.path
-import signal
-import re, html.entities
-
-FIREJAIL_COMMAND = ["firejail", "--profile=firejail.profile", "-c", "python3"]
-FIREJAIL_DIR = "firejail_dir/"
-INPUT = "input.py"
-
-ACCEPTED_FILES = ['./virtualenv/']
-
+import re
+import html.entities
+import config
 
 # https://stackoverflow.com/questions/25027122/break-the-function-after-certain-time
 
-class TimeoutException(Exception):   # Custom exception class
+class TimeoutException(Exception):
+    """Custom exception class"""
     pass
 
-def timeout_handler(signum, frame):   # Custom signal handler
+def timeout_handler(signum, frame):
+    """# Custom signal handler"""
     raise TimeoutException
 
 class Interpreter(object):
@@ -29,19 +23,17 @@ class Interpreter(object):
     Class to securely run code fed to us.
     """
 
-    def __init__(self, firejail_command=FIREJAIL_COMMAND, input_file=INPUT,
-                 firejail_dir=FIREJAIL_DIR):
+    def __init__(self, language):
 
-        self.firejail_dir = firejail_dir
-        self.input_file = firejail_dir + input_file
-        self.command = firejail_command + [input_file]
+        self.firejail_dir = config.FIREJAIL_DIR
+        self.input_file = self.firejail_dir + config.INPUT_FILE
+        self.command = config.FIREJAIL_COMMAND + language["command"]
         self.output = ""
 
     def run(self, code):
         """
         Runs code and returns the output
         """
-
         self.create_input(code)
 
         try:
@@ -55,10 +47,8 @@ class Interpreter(object):
         # if you print output, it gives you what you expect
         # however, if you, in a terminal, evaluate output, the string is different
         # I don't know why this happens
-        self.output = output[output.find("\x070")+1:]
-
-        self.clean_up()
-        self.delete_input()
+        self.output = output[output.find("\x070")+2:]
+        clean_up()
 
     def create_input(self, code=""):
         """
@@ -69,49 +59,37 @@ class Interpreter(object):
             tmp_file.write(code)
 
 
-    def delete_input(self):
-        """
-        Deletes temporary file
-        """
+def clean_up():
+    """
+    Kills every firejailed process
+    """
 
-        if os.path.exists(self.input_file):
-            os.remove(self.input_file)
-
-    def clear_files(self):
-        for root, dirs, files in os.walk(top=self.firejail_dir, topdown=False):
-            for name in files:
-                os.remove(os.path.join(root, name))
-            for name in dirs:
-                os.rmdir(os.path.join(root, name))
-
-    def clean_up(self):
-        command = ["firejail", "--list"]
-        kill = ["kill", "-9"]
-        PIDS = [int(s[:s.find(":")]) for s in str(subprocess.check_output(command), "utf-8").split("\n")[:-1]]
-        for PID in PIDS:
-            # os.kill sometimes doesn't work
-            # os.kill(PID, signal.SIGTERM)
-            try:
-                subprocess.check_call(kill + [str(PID)])
-            except subprocess.CalledProcessError:
-                pass
-
-##
-# Removes HTML or XML character references and entities from a text string.
-#
-# @param text The HTML (or XML) source text.
-# @return The plain text, as a Unicode string, if necessary.
+    command = ["firejail", "--list"]
+    kill = ["kill", "-9"]
+    pids = [int(s[:s.find(":")]) for s in str(subprocess.check_output(command), "utf-8")\
+        .split("\n")[:-1]]
+    for pid in pids:
+        # os.kill sometimes doesn't work
+        # os.kill(PID, signal.SIGTERM)
+        try:
+            subprocess.check_call(kill + [str(pid)])
+        except subprocess.CalledProcessError:
+            pass
 
 def unescape(text):
-    def fixup(m):
-        text = m.group(0)
+    """
+    Removes HTML or XML character references and entities from a text string.
+    @param text The HTML (or XML) source text.
+    @return The plain text, as a Unicode string, if necessary."""
+    def fixup(match):
+        """Auxiliary function"""
+        text = match.group(0)
         if text[:2] == "&#":
             # character reference
             try:
                 if text[:3] == "&#x":
-                    return unichr(int(text[3:-1], 16))
-                else:
-                    return unichr(int(text[2:-1]))
+                    return chr(int(text[3:-1], 16))
+                return chr(int(text[2:-1]))
             except ValueError:
                 pass
         else:
@@ -121,4 +99,4 @@ def unescape(text):
             except KeyError:
                 pass
         return text # leave as is
-    return re.sub("&#?\w+;", fixup, text)
+    return re.sub(r"&#?\w+;", fixup, text)
