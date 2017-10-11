@@ -6,6 +6,8 @@ import subprocess
 import re
 import html.entities
 import config
+import shutil
+import os
 
 # https://stackoverflow.com/questions/25027122/break-the-function-after-certain-time
 
@@ -47,7 +49,7 @@ class Interpreter(object):
         # if you print output, it gives you what you expect
         # however, if you, in a terminal, evaluate output, the string is different
         # I don't know why this happens
-        self.output = output[output.find("\x070")+2:]
+        self.output = (output[output.find("\x070")+2:]+".")[-1]
         clean_up()
 
     def create_input(self, code=""):
@@ -61,7 +63,7 @@ class Interpreter(object):
 
 def clean_up():
     """
-    Kills every firejailed process
+    Kills every firejailed process, cleans firejail_dir folder
     """
 
     command = ["firejail", "--list"]
@@ -75,7 +77,13 @@ def clean_up():
             subprocess.check_call(kill + [str(pid)])
         except subprocess.CalledProcessError:
             pass
-
+    # delete everything in firejail_dir
+    for the_file in os.listdir(config.FIREJAIL_DIR):
+        file_path = os.path.join(config.FIREJAIL_DIR, the_file)
+        try:
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path): shutil.rmtree(file_path)
 def unescape(text):
     """
     Removes HTML or XML character references and entities from a text string.
