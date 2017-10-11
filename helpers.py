@@ -44,12 +44,12 @@ class Interpreter(object):
             output_bytes = err.output
 
         output_bytes = output_bytes[output_bytes.find(b'\n'):]
-        output = str(output_bytes, "utf-8")
+        output_bytes = output_bytes[output_bytes.find(b"\x070")+2:]
         # if you take off, everything breaks, even if it makes no sense
         # if you print output, it gives you what you expect
         # however, if you, in a terminal, evaluate output, the string is different
         # I don't know why this happens
-        self.output = (output[output.find("\x070")+2:]+".")[-1]
+        self.output = str(output_bytes, "utf-8")
         clean_up()
 
     def create_input(self, code=""):
@@ -80,10 +80,11 @@ def clean_up():
     # delete everything in firejail_dir
     for the_file in os.listdir(config.FIREJAIL_DIR):
         file_path = os.path.join(config.FIREJAIL_DIR, the_file)
-        try:
-            if os.path.isfile(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path): shutil.rmtree(file_path)
+        if os.path.isfile(file_path):
+            os.unlink(file_path)
+        elif os.path.isdir(file_path):
+            shutil.rmtree(file_path)
+
 def unescape(text):
     """
     Removes HTML or XML character references and entities from a text string.
