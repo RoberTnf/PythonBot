@@ -54,16 +54,17 @@ class BotRunner(object):
         codes = []
         for comment in self.new_comments:
             line_list = comment.body.split("\n")
-            last_stop = 0
+            line_number = 0
             codes.append([])
             # get starting lines for code
             for _ in range(line_list.count(self.callsign)):
                 code = ""
-                for line in line_list[line_list.index(self.callsign, last_stop)+1:]:
+                line_number = line_list.index(self.callsign, line_number)
+                for line in line_list[line_number+1:]:
                     # if the comment block stops
                     if line.startswith("    ") or line == "":
                         code += "\n" + unescape(line[4:])
-                        last_stop += 1
+                        line_number += 1
                     else:
                         codes[-1].append(code)
                         break

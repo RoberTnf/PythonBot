@@ -11,7 +11,7 @@ LANGUAGES = {
 }
 
 # execution params
-TEST = False 
+TEST = True 
 MAX_TIME = 5
 BLOCKED_USERS = []
 ALLOWED_SUBREDDITS = [

@@ -42,7 +42,7 @@ class Interpreter(object):
             output_bytes = subprocess.check_output(self.command, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as err:
             output_bytes = err.output 
-       
+
         output = str(output_bytes, "utf-8")
         output = "".join(output.split("\x07")[1:])
 
