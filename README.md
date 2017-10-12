@@ -4,4 +4,15 @@ Interpret python code in a reddit comment.
 
 ## Usage
 
-In a comment write !python in its own line, then put a code block with your code.
+Call it by having in your reddit comment:
+
+```
+/u/InterpreterBot python
+
+    [Block of code]
+```
+
+## TODOs
+
+- Add support for different versions of python.
+- Add support for different languages.
