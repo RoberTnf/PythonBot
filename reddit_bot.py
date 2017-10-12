@@ -69,7 +69,7 @@ class BotRunner(object):
                     else:
                         codes[-1].append(code)
                         break
-            if len(codes[-1]) != line_list.count(number_of_calls):
+            if len(codes[-1]) != number_of_calls:
                 codes[-1].append(code)
         self.codes = codes
 
