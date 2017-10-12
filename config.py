@@ -11,7 +11,8 @@ LANGUAGES = {
 }
 
 # execution params
-TEST = True 
+TEST = True
+MAX_CALLS_PER_POST = 5 
 MAX_TIME = 5
 BLOCKED_USERS = []
 ALLOWED_SUBREDDITS = [

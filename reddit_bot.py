@@ -56,8 +56,9 @@ class BotRunner(object):
             line_list = comment.body.split("\n")
             line_number = 0
             codes.append([])
+            number_of_calls = min(config.MAX_CALLS_PER_POST, line_list.count(self.callsign))
             # get starting lines for code
-            for _ in range(line_list.count(self.callsign)):
+            for _ in range(number_of_calls):
                 code = ""
                 line_number = line_list.index(self.callsign, line_number)
                 for line in line_list[line_number+1:]:
@@ -68,7 +69,7 @@ class BotRunner(object):
                     else:
                         codes[-1].append(code)
                         break
-            if len(codes[-1]) != line_list.count(self.callsign):
+            if len(codes[-1]) != line_list.count(number_of_calls):
                 codes[-1].append(code)
         self.codes = codes
 
