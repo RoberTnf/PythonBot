@@ -16,7 +16,7 @@ MAX_CALLS_PER_POST = 5
 MAX_TIME = 5
 BLOCKED_USERS = []
 ALLOWED_SUBREDDITS = [
-    "testingground4bots", "python", "programming", "learnprogramming",
+    "python", "programming", "learnprogramming",
     "learnpython"]
 MAX_LENGTH_ALLOWED = 1000
 
