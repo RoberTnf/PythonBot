@@ -5,13 +5,13 @@ BOT_USERNAME = "/u/InterpreterBot"
 INPUT_FILE = "input"
 LANGUAGES = {
     "python": {
-        "command": ["py3-bot/bin/python", INPUT_FILE],
+        "command": ["python3", INPUT_FILE],
         "callsign": "python"
     }
 }
 
 # execution params
-TEST = False
+TEST = False 
 MAX_TIME = 5
 BLOCKED_USERS = []
 ALLOWED_SUBREDDITS = [
