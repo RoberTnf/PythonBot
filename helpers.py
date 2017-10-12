@@ -41,15 +41,16 @@ class Interpreter(object):
         try:
             output_bytes = subprocess.check_output(self.command, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as err:
-            output_bytes = err.output
+            output_bytes = err.output 
+       
+        output = str(output_bytes, "utf-8")
+        output = "".join(output.split("\x07")[1:])
 
-        output_bytes = output_bytes[output_bytes.find(b'\n'):]
-        output_bytes = output_bytes[output_bytes.find(b"\x070")+2:]
         # if you take off, everything breaks, even if it makes no sense
         # if you print output, it gives you what you expect
         # however, if you, in a terminal, evaluate output, the string is different
         # I don't know why this happens
-        self.output = str(output_bytes, "utf-8")
+        self.output = output
         clean_up()
 
     def create_input(self, code=""):
